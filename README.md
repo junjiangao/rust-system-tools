@@ -1,1 +1,1 @@
-Some demo for my rust study progress
+Some demos for my rust study progress
