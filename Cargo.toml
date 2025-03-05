@@ -1,0 +1,12 @@
+[package]
+name = "rust-dbus-test"
+version = "0.1.0"
+authors = ["xyzhuanjian <junjiangao@github.com>"]
+edition = "2024"
+
+[dependencies]
+zbus = { version = "5", default-features = false, features = ["tokio"] }
+serde = { version = "1" }
+tokio = { version = "1", features = ["full"] }
+clap = { version = "4.5", features = ["derive"] }
+thiserror = { version = "2" }
