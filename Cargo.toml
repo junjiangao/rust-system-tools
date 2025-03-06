@@ -1,7 +1,7 @@
 [package]
 name = "rust-dbus-test"
 version = "0.1.0"
-authors = ["xyzhuanjian <junjiangao@github.com>"]
+authors = ["junjiangao <junjiangao@github.com>"]
 edition = "2024"
 
 [dependencies]

@@ -61,18 +61,12 @@ async fn main() -> Result<()> {
     let connection = Connection::system().await?;
 
     // 创建 Loop 设备
-    let manager_path = OwnedObjectPath::try_from(MANAGER_PATH)
-    .map_err(|e| {
+    let manager_path = OwnedObjectPath::try_from(MANAGER_PATH).map_err(|e| {
         println!("Failed to convert manager path '{}': {}", MANAGER_PATH, e);
         e
     })?;
 
-    let manager_proxy = create_proxy(
-        &connection,
-        manager_path,
-        MANAGER_INTERFACE,
-    )
-    .await?;
+    let manager_proxy = create_proxy(&connection, manager_path, MANAGER_INTERFACE).await?;
 
     let options = HashMap::<String, Value>::new();
     let ret = manager_proxy
