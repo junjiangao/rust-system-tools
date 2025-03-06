@@ -1,3 +1,4 @@
+use anyhow::{Context, Result};
 use clap::Parser;
 use std::collections::HashMap;
 use std::fs::File;
@@ -9,113 +10,120 @@ use zbus::{Connection, Proxy};
 const MANAGER_PATH: &str = "/org/freedesktop/UDisks2/Manager";
 const MANAGER_INTERFACE: &str = "org.freedesktop.UDisks2.Manager";
 
-// 定义命令行参数结构体
 #[derive(Parser, Debug)]
 #[command(
     author = env!("CARGO_PKG_AUTHORS"),
     version,
     about = "A tool to test udisk2 mount interface",
-    long_about = None
 )]
 struct Args {
-    /// ISO 文件路径
+    /// ISO file path
     #[arg(short, long)]
     iso_path: PathBuf,
 }
 
-#[derive(Debug, thiserror::Error)]
-enum Error {
-    #[error("I/O error: {0}")]
-    Io(#[from] std::io::Error),
-    #[error("ZBUS error: {0}")]
-    Zbus(#[from] zbus::Error),
-    #[error("ZVariant error: {0}")]
-    ZVariant(#[from] zbus::zvariant::Error),
-    #[error("Missing mount point")]
-    MissingMountPoint,
-}
-
-type Result<T> = std::result::Result<T, Error>;
-
-// 创建代理对象的辅助函数
 async fn create_proxy<'a, P: Into<ObjectPath<'a>>>(
     connection: &Connection,
     path: P,
     interface: &'a str,
 ) -> Result<Proxy<'a>> {
-    Ok(Proxy::new(connection, "org.freedesktop.UDisks2", path, interface).await?)
+    Proxy::new(connection, "org.freedesktop.UDisks2", path, interface)
+        .await
+        .context("Failed to create proxy")
 }
 
-#[tokio::main]
-async fn main() -> Result<()> {
-    let args = Args::parse();
-
-    // 打开文件并获取文件描述符
-    let file = File::open(&args.iso_path).map_err(|e| {
-        eprintln!("无法打开文件 '{}'", args.iso_path.display());
-        e
-    })?;
-    let iso_fd = Fd::from(file.as_fd());
-    println!("文件描述符: {}", iso_fd);
-
-    let connection = Connection::system().await?;
-
-    // 创建 Loop 设备
-    let manager_path = OwnedObjectPath::try_from(MANAGER_PATH).map_err(|e| {
-        println!("Failed to convert manager path '{}': {}", MANAGER_PATH, e);
-        e
-    })?;
-
-    let manager_proxy = create_proxy(&connection, manager_path, MANAGER_INTERFACE).await?;
-
+async fn setup_loop_device(connection: &Connection, iso_fd: Fd<'_>) -> Result<ObjectPath<'static>> {
+    let manager_proxy = create_proxy(connection, OwnedObjectPath::try_from(MANAGER_PATH)?, MANAGER_INTERFACE).await?;
     let options = HashMap::<String, Value>::new();
     let ret = manager_proxy
         .call_method("LoopSetup", &(iso_fd, options))
         .await?
-        .body();
-    let object_path: ObjectPath = ret.deserialize()?;
-    println!("创建 Loop 设备: {}", object_path);
+        .body()
+        .to_owned();
+    let object_path: OwnedObjectPath = ret.deserialize()?;
+    println!("Loop device created: {}", object_path);
+    Ok(object_path.into())
+}
 
-    // 挂载文件系统
+async fn mount_filesystem(
+    connection: &Connection,
+    object_path: &ObjectPath<'static>,
+) -> Result<String> {
     let fs_proxy = create_proxy(
-        &connection,
+        connection,
         object_path.clone(),
         "org.freedesktop.UDisks2.Filesystem",
     )
     .await?;
-
     let mount_options = HashMap::<String, Value>::new();
     let mount_path: String = fs_proxy
         .call_method("Mount", &(mount_options))
         .await?
         .body()
         .deserialize()?;
-    println!("成功挂载到: {}", mount_path);
+    println!("Mounted at: {}", mount_path);
+    Ok(mount_path)
+}
 
-    // 验证挂载点
+async fn verify_mount_point(fs_proxy: &Proxy<'_>) -> Result<()> {
     let mount_points: Vec<Vec<u8>> = fs_proxy.get_property("MountPoints").await?;
-    let mount_point = mount_points.first().ok_or(Error::MissingMountPoint)?;
+    let mount_point = mount_points.first().context("Missing mount point")?;
     println!(
-        "实际挂载点: {}",
+        "Actual mount point: {}",
         std::str::from_utf8(mount_point).unwrap_or_default()
     );
+    Ok(())
+}
 
-    // 卸载文件系统
+async fn unmount_filesystem(fs_proxy: &Proxy<'_>) -> Result<()> {
     let unmount_options = HashMap::<String, Value>::new();
     fs_proxy.call_method("Unmount", &(unmount_options)).await?;
-    println!("成功卸载: {}", mount_path);
+    println!("Unmounted successfully");
+    Ok(())
+}
 
-    // 删除 Loop 设备
+async fn delete_loop_device(
+    connection: &Connection,
+    object_path: &ObjectPath<'static>,
+) -> Result<()> {
     let loop_proxy = create_proxy(
-        &connection,
+        connection,
         object_path.clone(),
         "org.freedesktop.UDisks2.Loop",
     )
     .await?;
-
     let delete_options = HashMap::<String, Value>::new();
     loop_proxy.call_method("Delete", &(delete_options)).await?;
-    println!("已删除 Loop 设备: {}", object_path);
+    println!("Loop device deleted: {}", object_path);
+    Ok(())
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let args = Args::parse();
+
+    let file = File::open(&args.iso_path).context("Unable to open file")?;
+    let iso_fd = Fd::from(file.as_fd());
+    println!("File descriptor: {}", iso_fd);
+
+    let connection = Connection::system()
+        .await
+        .context("Failed to connect to system bus")?;
+
+    let object_path = setup_loop_device(&connection, iso_fd).await?;
+
+    mount_filesystem(&connection, &object_path).await?;
+
+    let fs_proxy = create_proxy(
+        &connection,
+        object_path.clone(),
+        "org.freedesktop.UDisks2.Filesystem",
+    )
+    .await?;
+    verify_mount_point(&fs_proxy).await?;
+
+    unmount_filesystem(&fs_proxy).await?;
+    delete_loop_device(&connection, &object_path).await?;
 
     Ok(())
 }
