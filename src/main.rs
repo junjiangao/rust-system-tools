@@ -1,21 +1,13 @@
 use anyhow::{Context, Result};
 use clap::Parser;
-use std::{
-    collections::HashMap,
-    fs::File,
-    os::fd::AsFd,
-    path::PathBuf,
-};
-use zbus::{
-    zvariant::{Fd, ObjectPath, OwnedObjectPath, Value},
-    Connection, Proxy,
-};
+use std::path::PathBuf;
+use zbus::Connection;
 
-const UDISKS2_SERVICE: &str = "org.freedesktop.UDisks2";
-const UDISKS2_MANAGER_PATH: &str = "/org/freedesktop/UDisks2/Manager";
-const UDISKS2_MANAGER_INTERFACE: &str = "org.freedesktop.UDisks2.Manager";
-const UDISKS2_FILESYSTEM_INTERFACE: &str = "org.freedesktop.UDisks2.Filesystem";
-const UDISKS2_LOOP_INTERFACE: &str = "org.freedesktop.UDisks2.Loop";
+mod udisks2;
+use udisks2::IsoMounter;
+
+mod gui;
+use gui::run_gui;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -24,125 +16,89 @@ const UDISKS2_LOOP_INTERFACE: &str = "org.freedesktop.UDisks2.Loop";
     about = "A tool to test UDisks2 mount interface"
 )]
 struct Args {
-    /// ISO file path
-    #[arg(short, long, value_name = "FILE")]
-    iso_path: PathBuf,
+    #[command(subcommand)]
+    command: Commands,
 }
 
-/// Represents a UDisks2 device manager
-struct UDisks2Manager<'a> {
-    connection: &'a Connection,
-    proxy: Proxy<'a>,
+#[derive(clap::Subcommand, Debug)]
+enum Commands {
+    /// Mount ISO file in console mode
+    Mount {
+        /// ISO file path
+        #[arg(short, long, value_name = "FILE")]
+        iso_path: PathBuf,
+    },
+    /// Show GUI window
+    #[command(long_about = "Launch GUI interface for ISO mounting")]
+    ShowGui,
 }
 
-/// Represents a UDisks2 filesystem device
-struct UDisks2Filesystem<'a> {
-    proxy: Proxy<'a>,
-    object_path: ObjectPath<'static>,
+/// Main application logic
+struct App {
+    connection: Connection,
 }
 
-impl<'a> UDisks2Manager<'a> {
-    async fn new(connection: &'a Connection) -> Result<Self> {
-        let proxy = Proxy::new(
-            connection,
-            UDISKS2_SERVICE,
-            UDISKS2_MANAGER_PATH,
-            UDISKS2_MANAGER_INTERFACE,
-        )
+impl App {
+    async fn new() -> Result<Self> {
+        let connection = Connection::system()
         .await
-        .context("Failed to create UDisks2 manager proxy")?;
+            .context("Failed to connect to system bus")?;
 
-        Ok(Self { connection, proxy })
+        Ok(Self { connection })
     }
 
-    async fn setup_loop_device(&self, iso_fd: Fd<'_>) -> Result<UDisks2Filesystem<'a>> {
-        let options = HashMap::<String, Value>::new();
-        let object_path: OwnedObjectPath = self
-            .proxy
-            .call_method("LoopSetup", &(iso_fd, options))
-            .await?
-            .body()
-            .deserialize()
-            .context("Failed to deserialize loop device object path")?;
-
-        println!("Loop device created: {}", object_path);
-
-        UDisks2Filesystem::new(self.connection, object_path.into()).await
-    }
-}
-
-impl<'a> UDisks2Filesystem<'a> {
-    async fn new(connection: &'a Connection, object_path: ObjectPath<'static>) -> Result<Self> {
-        let proxy = Proxy::new(
-            connection,
-            UDISKS2_SERVICE,
-            object_path.clone(),
-            UDISKS2_FILESYSTEM_INTERFACE,
-        )
-        .await
-        .context("Failed to create filesystem proxy")?;
-
-        Ok(Self { proxy, object_path })
-    }
-
-    async fn mount(&self) -> Result<String> {
-        let mount_options = HashMap::<String, Value>::new();
-        let mount_path: String = self
-            .proxy
-            .call_method("Mount", &(mount_options,))
-            .await?
-            .body()
-            .deserialize()
-            .context("Failed to deserialize mount path")?;
-
-        println!("Mounted at: {}", mount_path);
-        Ok(mount_path)
-    }
-
-    async fn verify_mount_point(&self) -> Result<()> {
-        let mount_points: Vec<Vec<u8>> = self
-            .proxy
-            .get_property("MountPoints")
-            .await
-            .context("Failed to get mount points")?;
-
-        let mount_point = mount_points
-            .first()
-            .context("No mount points available")?;
-
-        let mount_point_str = String::from_utf8_lossy(mount_point);
-        println!("Actual mount point: {}", mount_point_str);
+    async fn run(&self, args: Args) -> Result<()> {
+        match args.command {
+            Commands::Mount { iso_path } => {
+                self.run_console_mode(&iso_path).await?;
+            }
+            Commands::ShowGui => {
+                self.run_with_gui().await?;
+            }
+        }
         Ok(())
     }
 
-    async fn unmount(&self) -> Result<()> {
-        let unmount_options = HashMap::<String, Value>::new();
-        self.proxy
-            .call_method("Unmount", &(unmount_options,))
-            .await
-            .context("Failed to unmount filesystem")?;
-
-        println!("Unmounted successfully");
+    async fn run_console_mode(&self, iso_path: &PathBuf) -> Result<()> {
+        match self.mount_iso_workflow(iso_path).await {
+            Ok(_) => println!("ISO mount workflow completed successfully"),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                return Err(e);
+            }
+        }
         Ok(())
     }
 
-    async fn delete(self) -> Result<()> {
-        let loop_proxy = Proxy::new(
-            self.proxy.connection(),
-            UDISKS2_SERVICE,
-            self.object_path.clone(),
-            UDISKS2_LOOP_INTERFACE,
-        )
-        .await
-        .context("Failed to create loop device proxy")?;
+        async fn run_with_gui(&self) -> Result<()> {
+        println!("Starting GUI mode...");
+        run_gui()
+    }
 
-        let delete_options = HashMap::<String, Value>::new();
-        loop_proxy
-            .call_method("Delete", &(delete_options,))
-            .await
-            .context("Failed to delete loop device")?;
+    async fn mount_iso_workflow(&self, iso_path: &PathBuf) -> Result<()> {
+        let mounter = IsoMounter::new(&self.connection).await?;
+        let mounted_iso = mounter.mount_iso(iso_path).await?;
 
-        println!("Loop device deleted: {}", self.object_path);
+        println!("ISO successfully mounted at: {}", mounted_iso.mount_path);
+
+        // 在这里可以添加其他操作，比如文件处理、数据分析等
+        self.process_mounted_files(&mounted_iso.mount_path).await?;
+
+        mounter.unmount_iso(mounted_iso).await?;
+        Ok(())
+    }
+
+    /// 示例扩展方法：处理挂载的文件
+    async fn process_mounted_files(&self, mount_path: &str) -> Result<()> {
+        println!("Processing files in mount point: {}", mount_path);
+        // 这里可以添加实际的文件处理逻辑
+        // 例如：
+        // - 扫描文件列表
+        // - 提取特定文件
+        // - 分析ISO内容
+        // - 数据处理等
+
+        println!("File processing completed");
         Ok(())
     }
 }
@@ -150,29 +106,6 @@ impl<'a> UDisks2Filesystem<'a> {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
-
-    // Open the ISO file
-    let file = File::open(&args.iso_path)
-        .with_context(|| format!("Failed to open ISO file: {}", args.iso_path.display()))?;
-    let iso_fd = Fd::from(file.as_fd());
-    println!("File descriptor: {}", iso_fd);
-
-    // Connect to the system bus
-    let connection = Connection::system()
-        .await
-        .context("Failed to connect to system bus")?;
-
-    // Create UDisks2 manager and setup loop device
-    let manager = UDisks2Manager::new(&connection).await?;
-    let filesystem = manager.setup_loop_device(iso_fd).await?;
-
-    // Mount and verify
-    filesystem.mount().await?;
-    filesystem.verify_mount_point().await?;
-
-    // Cleanup
-    filesystem.unmount().await?;
-    filesystem.delete().await?;
-
-    Ok(())
+    let app = App::new().await?;
+    app.run(args).await
 }
