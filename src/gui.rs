@@ -31,7 +31,7 @@ impl eframe::App for GuiApp {
 
             ui.separator();
 
-                        ui.horizontal(|ui| {
+            ui.horizontal(|ui| {
                 ui.label("ISO路径:");
                 if let Some(ref path) = self.iso_path {
                     ui.label(path.display().to_string());
@@ -97,7 +97,9 @@ impl GuiApp {
 
 #[cfg(not(feature = "gui"))]
 pub fn run_gui() -> anyhow::Result<()> {
-    Err(anyhow::anyhow!("GUI feature not enabled. Compile with --features gui"))
+    Err(anyhow::anyhow!(
+        "GUI feature not enabled. Compile with --features gui"
+    ))
 }
 
 #[cfg(feature = "gui")]
@@ -128,8 +130,10 @@ fn setup_fonts(ctx: &egui::Context) {
 
     let mut fonts = FontDefinitions::default();
 
-            // 在Linux系统中尝试加载系统中文字体
-    if let Ok(font_data) = std::fs::read("/usr/share/fonts/opentype/source-han-cjk/SourceHanSansSC-Regular.otf") {
+    // 在Linux系统中尝试加载系统中文字体
+    if let Ok(font_data) =
+        std::fs::read("/usr/share/fonts/opentype/source-han-cjk/SourceHanSansSC-Regular.otf")
+    {
         fonts.font_data.insert(
             "source_han_sans".to_owned(),
             std::sync::Arc::new(egui::FontData::from_owned(font_data)),

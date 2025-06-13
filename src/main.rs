@@ -41,7 +41,7 @@ struct App {
 impl App {
     async fn new() -> Result<Self> {
         let connection = Connection::system()
-        .await
+            .await
             .context("Failed to connect to system bus")?;
 
         Ok(Self { connection })
@@ -70,7 +70,7 @@ impl App {
         Ok(())
     }
 
-        async fn run_with_gui(&self) -> Result<()> {
+    async fn run_with_gui(&self) -> Result<()> {
         println!("Starting GUI mode...");
         run_gui()
     }
