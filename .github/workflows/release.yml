@@ -22,18 +22,6 @@ jobs:
             os: ubuntu-latest
             name: rust-study-examples-linux-x86_64
 
-          - target: x86_64-pc-windows-gnu
-            os: ubuntu-latest
-            name: rust-study-examples-windows-x86_64.exe
-
-          - target: x86_64-apple-darwin
-            os: macos-latest
-            name: rust-study-examples-macos-x86_64
-
-          - target: aarch64-apple-darwin
-            os: macos-latest
-            name: rust-study-examples-macos-aarch64
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -58,17 +46,6 @@ jobs:
           libssl-dev \
           gcc-mingw-w64-x86-64
 
-    - name: Setup cross compilation
-      if: matrix.target == 'x86_64-pc-windows-gnu'
-      run: |
-        sudo apt-get install -y gcc-mingw-w64-x86-64
-
-    - name: Configure cargo for Windows cross compile
-      if: matrix.target == 'x86_64-pc-windows-gnu'
-      run: |
-        echo '[target.x86_64-pc-windows-gnu]' >> ~/.cargo/config.toml
-        echo 'linker = "x86_64-w64-mingw32-gcc"' >> ~/.cargo/config.toml
-
     - name: Cache cargo registry
       uses: actions/cache@v4
       with:
@@ -89,11 +66,7 @@ jobs:
       if: matrix.os != 'windows-latest'
       run: |
         cd target/${{ matrix.target }}/release
-        if [ "${{ matrix.target }}" = "x86_64-pc-windows-gnu" ]; then
-          cp rust-study-examples.exe ${{ matrix.name }}
-        else
-          cp rust-study-examples ${{ matrix.name }}
-        fi
+        cp rust-study-examples ${{ matrix.name }}
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -124,9 +97,6 @@ jobs:
       with:
         files: |
           ./artifacts/rust-study-examples-linux-x86_64/rust-study-examples-linux-x86_64
-          ./artifacts/rust-study-examples-windows-x86_64.exe/rust-study-examples-windows-x86_64.exe
-          ./artifacts/rust-study-examples-macos-x86_64/rust-study-examples-macos-x86_64
-          ./artifacts/rust-study-examples-macos-aarch64/rust-study-examples-macos-aarch64
         generate_release_notes: true
         draft: false
         prerelease: false
