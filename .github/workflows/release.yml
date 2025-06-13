@@ -1,0 +1,169 @@
+name: Release
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            name: rust-study-examples-linux-x86_64
+
+          - target: x86_64-pc-windows-gnu
+            os: ubuntu-latest
+            name: rust-study-examples-windows-x86_64.exe
+
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            name: rust-study-examples-macos-x86_64
+
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            name: rust-study-examples-macos-aarch64
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: ${{ matrix.target }}
+
+    - name: Install system dependencies (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          pkg-config \
+          libdbus-1-dev \
+          libgtk-3-dev \
+          libxcb-render0-dev \
+          libxcb-shape0-dev \
+          libxcb-xfixes0-dev \
+          libxkbcommon-dev \
+          libssl-dev \
+          gcc-mingw-w64-x86-64
+
+    - name: Setup cross compilation
+      if: matrix.target == 'x86_64-pc-windows-gnu'
+      run: |
+        sudo apt-get install -y gcc-mingw-w64-x86-64
+
+    - name: Configure cargo for Windows cross compile
+      if: matrix.target == 'x86_64-pc-windows-gnu'
+      run: |
+        echo '[target.x86_64-pc-windows-gnu]' >> ~/.cargo/config.toml
+        echo 'linker = "x86_64-w64-mingw32-gcc"' >> ~/.cargo/config.toml
+
+    - name: Cache cargo registry
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-${{ matrix.target }}-
+          ${{ runner.os }}-cargo-
+
+    - name: Build release binary
+      run: |
+        cargo build --release --target ${{ matrix.target }} --features gui
+
+    - name: Prepare binary (Unix)
+      if: matrix.os != 'windows-latest'
+      run: |
+        cd target/${{ matrix.target }}/release
+        if [ "${{ matrix.target }}" = "x86_64-pc-windows-gnu" ]; then
+          cp rust-study-examples.exe ${{ matrix.name }}
+        else
+          cp rust-study-examples ${{ matrix.name }}
+        fi
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.name }}
+        path: target/${{ matrix.target }}/release/${{ matrix.name }}
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: ./artifacts
+
+    - name: Create release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ./artifacts/**/*
+        generate_release_notes: true
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          pkg-config \
+          libdbus-1-dev \
+          libgtk-3-dev \
+          libxcb-render0-dev \
+          libxcb-shape0-dev \
+          libxcb-xfixes0-dev \
+          libxkbcommon-dev \
+          libssl-dev
+
+    - name: Cache cargo
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Run tests
+      run: cargo test --features gui
+
+    - name: Check formatting
+      run: cargo fmt -- --check
+
+    - name: Run clippy
+      run: cargo clippy --features gui -- -D warnings
