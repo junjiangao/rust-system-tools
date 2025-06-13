@@ -82,9 +82,6 @@ src/
 
 ### 支持平台
 - Linux x86_64 (GNU)
-- Windows x86_64 (GNU)
-- macOS x86_64 (Intel)
-- macOS aarch64 (Apple Silicon)
 
 ### 下载预构建版本
 访问[Releases页面](../../releases)下载最新的预构建二进制文件。
@@ -114,4 +111,3 @@ cargo build --release --no-default-features
 - GUI功能默认启用，如需纯命令行版本使用`--no-default-features`
 - 需要系统安装UDisks2服务
 - 某些操作可能需要适当的用户权限
-- Windows版本可能需要额外的运行时库
