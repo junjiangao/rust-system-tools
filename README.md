@@ -1,5 +1,7 @@
 # UDisks2 ISO Mounter
 
+[![Build](https://github.com/junjiangao/rust-study-demo/actions/workflows/rust.yml/badge.svg?event=push)](https://github.com/junjiangao/rust-study-demo/actions/workflows/rust.yml)
+
 一个用于通过UDisks2接口挂载ISO文件的Rust工具，支持命令行和GUI两种模式。
 
 ## 功能
