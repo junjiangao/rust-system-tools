@@ -12,6 +12,12 @@ pub struct GuiApp {
     is_mounted: bool,
 }
 
+impl Default for GuiApp {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[cfg(feature = "gui")]
 impl GuiApp {
     pub fn new() -> Self {
