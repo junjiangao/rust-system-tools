@@ -1,6 +1,6 @@
 # UDisks2 ISO Mounter
 
-[![Build](https://github.com/junjiangao/rust-study-demo/actions/workflows/rust.yml/badge.svg?event=push)](https://github.com/junjiangao/rust-study-demo/actions/workflows/rust.yml)
+[![Build](https://github.com/junjiangao/rust-study-demo/actions/workflows/quick-build.yml/badge.svg?event=push)](https://github.com/junjiangao/rust-study-demo/actions/workflows/quick-build.yml)
 
 一个用于通过UDisks2接口挂载ISO文件的Rust工具，支持命令行和GUI两种模式。
 
@@ -72,8 +72,46 @@ src/
 2. **gui模块**: 提供可选的图形界面
 3. **main模块**: 应用程序逻辑和CLI解析
 
+## 自动构建
+
+项目使用GitHub Actions自动构建多平台二进制文件：
+
+### 构建流程
+- **快速构建**: 每次推送到main分支时触发
+- **完整构建**: 创建tag时构建所有平台的发布版本
+
+### 支持平台
+- Linux x86_64 (GNU)
+- Windows x86_64 (GNU)
+- macOS x86_64 (Intel)
+- macOS aarch64 (Apple Silicon)
+
+### 下载预构建版本
+访问[Releases页面](../../releases)下载最新的预构建二进制文件。
+
+## 手动构建
+
+如需本地构建，确保安装了以下依赖：
+
+### Linux
+```bash
+sudo apt-get install pkg-config libdbus-1-dev libgtk-3-dev \
+    libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev \
+    libxkbcommon-dev libssl-dev
+```
+
+### 构建命令
+```bash
+# 构建GUI版本
+cargo build --release --features gui
+
+# 构建命令行版本
+cargo build --release --no-default-features
+```
+
 ## 注意事项
 
-- GUI功能需要编译时启用`gui`特性
+- GUI功能默认启用，如需纯命令行版本使用`--no-default-features`
 - 需要系统安装UDisks2服务
 - 某些操作可能需要适当的用户权限
+- Windows版本可能需要额外的运行时库
