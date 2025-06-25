@@ -22,7 +22,7 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
-            name: rust-study-examples-linux-x86_64
+            name: rust-system-tools-linux-x86_64
 
     steps:
     - name: Checkout code
@@ -68,7 +68,7 @@ jobs:
       if: matrix.os != 'windows-latest'
       run: |
         cd target/${{ matrix.target }}/release
-        cp rust-study-examples ${{ matrix.name }}
+        cp rust-system-tools ${{ matrix.name }}
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -100,7 +100,7 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         files: |
-          ./artifacts/rust-study-examples-linux-x86_64/rust-study-examples-linux-x86_64
+          ./artifacts/rust-system-tools-linux-x86_64/rust-system-tools-linux-x86_64
         generate_release_notes: true
         draft: false
         prerelease: false

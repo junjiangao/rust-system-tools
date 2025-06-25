@@ -196,7 +196,7 @@ impl AppConfig {
             return Err(anyhow::anyhow!("Cannot determine config directory"));
         };
 
-        Ok(config_dir.join("rust-study-examples").join("config.toml"))
+        Ok(config_dir.join("rust-system-tools").join("config.toml"))
     }
 
     /// 获取字体族配置，按优先级排序
