@@ -27,16 +27,16 @@ cargo build --release --features gui
 ### 命令行模式
 ```bash
 # 挂载ISO文件
-./target/release/rust-study-examples mount -i /path/to/your.iso
+./target/release/rust-system-tools mount -i /path/to/your.iso
 
 # 或使用长参数
-./target/release/rust-study-examples mount --iso-path /path/to/your.iso
+./target/release/rust-system-tools mount --iso-path /path/to/your.iso
 ```
 
 ### GUI模式
 ```bash
 # 启动GUI界面
-./target/release/rust-study-examples show-gui
+./target/release/rust-system-tools show-gui
 ```
 
 ## 参数说明
@@ -51,7 +51,7 @@ cargo build --release --features gui
 
 程序支持通过配置文件自定义GUI设置：
 
-**配置文件位置:** `~/.config/rust-study-examples/config.toml`
+**配置文件位置:** `~/.config/rust-system-tools/config.toml`
 
 **配置示例:**
 ```toml

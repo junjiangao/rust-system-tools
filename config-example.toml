@@ -1,5 +1,5 @@
 # UDisks2 ISO Mounter 配置文件
-# 复制此文件到 ~/.config/rust-study-examples/config.toml 来自定义设置
+# 复制此文件到 ~/.config/rust-system-tools/config.toml 来自定义设置
 
 [gui]
 # 字体大小
