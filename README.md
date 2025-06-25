@@ -12,14 +12,9 @@
 
 ## 编译
 
-### 基本版本（仅命令行）
+### 基本版本
 ```bash
-cargo build --release
-```
-
-### 包含GUI功能
-```bash
-cargo build --release --features gui
+cargo build
 ```
 
 ## 使用方法
@@ -110,7 +105,8 @@ src/
 ├── main.rs      # 主程序入口和CLI处理
 ├── lib.rs       # 库接口
 ├── udisks2.rs   # UDisks2功能实现
-└── gui.rs       # GUI界面实现
+├── gui.rs       # GUI界面实现
+└── config.rs    # 配置文件实现
 ```
 
 ## 开发
@@ -120,6 +116,7 @@ src/
 1. **udisks2模块**: 处理所有UDisks2相关操作
 2. **gui模块**: 提供可选的图形界面
 3. **main模块**: 应用程序逻辑和CLI解析
+4. **config模块**: 配置文件管理，配合gui使用
 
 ## 自动构建
 
@@ -148,15 +145,11 @@ sudo apt-get install pkg-config libdbus-1-dev libgtk-3-dev \
 
 ### 构建命令
 ```bash
-# 构建GUI版本
-cargo build --release --features gui
-
-# 构建命令行版本
-cargo build --release --no-default-features
+# 版本构建
+cargo build --release
 ```
 
 ## 注意事项
 
-- GUI功能默认启用，如需纯命令行版本使用`--no-default-features`
 - 需要系统安装UDisks2服务
 - 某些操作可能需要适当的用户权限
