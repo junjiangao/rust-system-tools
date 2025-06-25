@@ -1,13 +1,8 @@
-#[cfg(feature = "gui")]
 use crate::config::{AppConfig, FontLoader};
-#[cfg(feature = "gui")]
 use anyhow::Result;
-#[cfg(feature = "gui")]
 use egui::*;
-#[cfg(feature = "gui")]
 use std::path::PathBuf;
 
-#[cfg(feature = "gui")]
 pub struct GuiApp {
     iso_path: Option<PathBuf>,
     status_message: String,
@@ -20,7 +15,6 @@ impl Default for GuiApp {
     }
 }
 
-#[cfg(feature = "gui")]
 impl GuiApp {
     pub fn new() -> Self {
         Self {
@@ -31,7 +25,6 @@ impl GuiApp {
     }
 }
 
-#[cfg(feature = "gui")]
 impl eframe::App for GuiApp {
     fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
         CentralPanel::default().show(ctx, |ui| {
@@ -90,27 +83,6 @@ impl eframe::App for GuiApp {
     }
 }
 
-#[cfg(not(feature = "gui"))]
-use std::path::PathBuf;
-
-#[cfg(not(feature = "gui"))]
-pub struct GuiApp;
-
-#[cfg(not(feature = "gui"))]
-impl GuiApp {
-    pub fn new() -> Self {
-        Self
-    }
-}
-
-#[cfg(not(feature = "gui"))]
-pub fn run_gui() -> anyhow::Result<()> {
-    Err(anyhow::anyhow!(
-        "GUI feature not enabled. Compile with --features gui"
-    ))
-}
-
-#[cfg(feature = "gui")]
 pub fn run_gui() -> Result<()> {
     // 加载配置
     let config = AppConfig::load()?;
@@ -135,7 +107,6 @@ pub fn run_gui() -> Result<()> {
     .map_err(|e| anyhow::anyhow!("GUI error: {}", e))
 }
 
-#[cfg(feature = "gui")]
 fn setup_fonts(ctx: &egui::Context, config: &AppConfig) -> Result<()> {
     use egui::FontDefinitions;
 

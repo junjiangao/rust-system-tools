@@ -2,12 +2,10 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-#[cfg(feature = "gui")]
 pub struct FontLoader {
     db: fontdb::Database,
 }
 
-#[cfg(feature = "gui")]
 impl Default for FontLoader {
     fn default() -> Self {
         Self::new()
