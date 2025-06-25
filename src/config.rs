@@ -8,6 +8,12 @@ pub struct FontLoader {
 }
 
 #[cfg(feature = "gui")]
+impl Default for FontLoader {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FontLoader {
     pub fn new() -> Self {
         let mut db = fontdb::Database::new();
@@ -38,6 +44,7 @@ impl FontLoader {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Default)]
 pub struct AppConfig {
     #[serde(default)]
     pub gui: GuiConfig,
@@ -65,13 +72,6 @@ pub struct FontFamilies {
     pub fallback: Vec<String>,
 }
 
-impl Default for AppConfig {
-    fn default() -> Self {
-        Self {
-            gui: GuiConfig::default(),
-        }
-    }
-}
 
 impl Default for GuiConfig {
     fn default() -> Self {
