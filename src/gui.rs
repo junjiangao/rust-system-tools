@@ -4,6 +4,8 @@ use anyhow::Result;
 use egui::*;
 #[cfg(feature = "gui")]
 use std::path::PathBuf;
+#[cfg(feature = "gui")]
+use crate::config::{AppConfig, FontLoader};
 
 #[cfg(feature = "gui")]
 pub struct GuiApp {
@@ -110,9 +112,12 @@ pub fn run_gui() -> anyhow::Result<()> {
 
 #[cfg(feature = "gui")]
 pub fn run_gui() -> Result<()> {
+    // 加载配置
+    let config = AppConfig::load()?;
+
     let options = eframe::NativeOptions {
         viewport: ViewportBuilder::default()
-            .with_inner_size([500.0, 400.0])
+            .with_inner_size([config.gui.window_width, config.gui.window_height])
             .with_title("UDisks2 ISO 挂载工具"),
         ..Default::default()
     };
@@ -122,8 +127,8 @@ pub fn run_gui() -> Result<()> {
         "UDisks2 ISO 挂载工具",
         options,
         Box::new(move |cc| {
-            // 使用系统中文字体
-            setup_fonts(&cc.egui_ctx);
+            // 使用配置中的字体
+            setup_fonts(&cc.egui_ctx, &config)?;
             Ok(Box::new(app))
         }),
     )
@@ -131,26 +136,77 @@ pub fn run_gui() -> Result<()> {
 }
 
 #[cfg(feature = "gui")]
-fn setup_fonts(ctx: &egui::Context) {
+fn setup_fonts(ctx: &egui::Context, config: &AppConfig) -> Result<()> {
     use egui::FontDefinitions;
 
     let mut fonts = FontDefinitions::default();
+    let font_loader = FontLoader::new();
 
-    // 在Linux系统中尝试加载系统中文字体
-    if let Ok(font_data) =
-        std::fs::read("/usr/share/fonts/opentype/source-han-cjk/SourceHanSansSC-Regular.otf")
-    {
+    // 获取配置的字体族列表
+    let _font_families = config.get_font_families();
+
+    // 尝试分组加载字体
+    let mut loaded_fonts = Vec::new();
+
+    // 加载中文字体
+    if let Some(font_data) = font_loader.find_font_data(&config.gui.font_families.chinese) {
+        let font_id = "chinese_font".to_string();
         fonts.font_data.insert(
-            "source_han_sans".to_owned(),
+            font_id.clone(),
             std::sync::Arc::new(egui::FontData::from_owned(font_data)),
         );
+        loaded_fonts.push(font_id);
+    }
 
-        fonts
+    // 加载英文字体
+    if let Some(font_data) = font_loader.find_font_data(&config.gui.font_families.english) {
+        let font_id = "english_font".to_string();
+        fonts.font_data.insert(
+            font_id.clone(),
+            std::sync::Arc::new(egui::FontData::from_owned(font_data)),
+        );
+        loaded_fonts.push(font_id);
+    }
+
+    // 加载fallback字体
+    if let Some(font_data) = font_loader.find_font_data(&config.gui.font_families.fallback) {
+        let font_id = "fallback_font".to_string();
+        fonts.font_data.insert(
+            font_id.clone(),
+            std::sync::Arc::new(egui::FontData::from_owned(font_data)),
+        );
+        loaded_fonts.push(font_id);
+    }
+
+    // 设置字体族优先级
+    if !loaded_fonts.is_empty() {
+        // 为Proportional字体族设置优先级
+        let proportional_fonts = fonts
             .families
             .entry(egui::FontFamily::Proportional)
-            .or_default()
-            .insert(0, "source_han_sans".to_owned());
+            .or_default();
+
+        // 清空默认字体，按优先级添加加载的字体
+        proportional_fonts.clear();
+        for font_id in &loaded_fonts {
+            proportional_fonts.push(font_id.clone());
+        }
+
+        // 为Monospace字体族也设置相同的字体
+        let monospace_fonts = fonts
+            .families
+            .entry(egui::FontFamily::Monospace)
+            .or_default();
+
+        for font_id in &loaded_fonts {
+            monospace_fonts.push(font_id.clone());
+        }
+
+        println!("Loaded {} fonts: {:?}", loaded_fonts.len(), loaded_fonts);
+    } else {
+        println!("No fonts could be loaded from config, using default system fonts");
     }
 
     ctx.set_fonts(fonts);
+    Ok(())
 }

@@ -41,8 +41,57 @@ cargo build --release --features gui
 
 ## 参数说明
 
-- `-i, --iso-path <FILE>`: 指定ISO文件路径（必需）
-- `--show-gui`: 启动GUI模式（可选）
+**命令行模式:**
+- `mount -i, --iso-path <FILE>`: 指定ISO文件路径进行挂载
+
+**GUI模式:**
+- `show-gui`: 启动图形界面
+
+## 配置文件
+
+程序支持通过配置文件自定义GUI设置：
+
+**配置文件位置:** `~/.config/rust-study-examples/config.toml`
+
+**配置示例:**
+```toml
+[gui]
+# 字体大小和窗口设置
+font_size = 14.0
+window_width = 600.0
+window_height = 450.0
+
+# 智能字体配置
+[gui.font_families]
+# 中文字体（按优先级）
+chinese = [
+    "Source Han Sans SC",    # Linux 思源黑体
+    "PingFang SC",          # macOS 苹方
+    "Microsoft YaHei"       # Windows 微软雅黑
+]
+
+# 英文字体（按优先级）
+english = [
+    "Inter",               # 现代设计字体
+    "Segoe UI",           # Windows 系统字体
+    "San Francisco"       # macOS 系统字体
+]
+
+# 后备字体
+fallback = [
+    "Noto Sans",
+    "Arial",
+    "sans-serif"
+]
+```
+
+**字体配置特性:**
+- 🎨 **智能字体系统**: 自动查找系统已安装字体
+- 🌍 **多语言支持**: 分别配置中英文字体
+- 🔄 **自动降级**: 支持fallback字体链
+- 📱 **跨平台**: 支持Linux/macOS/Windows字体名称
+
+首次运行GUI时会自动创建默认配置文件。
 
 ## 依赖要求
 
