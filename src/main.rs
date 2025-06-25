@@ -3,6 +3,7 @@ use clap::Parser;
 use std::path::PathBuf;
 use zbus::Connection;
 
+mod config;
 mod udisks2;
 use udisks2::IsoMounter;
 

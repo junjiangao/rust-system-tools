@@ -1,0 +1,44 @@
+# UDisks2 ISO Mounter 配置文件
+# 复制此文件到 ~/.config/rust-study-examples/config.toml 来自定义设置
+
+[gui]
+# 字体大小
+font_size = 14.0
+
+# 窗口尺寸
+window_width = 500.0
+window_height = 400.0
+
+# 字体族配置
+[gui.font_families]
+# 中文字体（按优先级排序）
+chinese = [
+    "Source Han Sans SC",        # Linux 思源黑体
+    "Noto Sans CJK SC",         # Linux Noto字体
+    "WenQuanYi Zen Hei",        # Linux 文泉驿
+    "PingFang SC",              # macOS 苹方
+    "Hiragino Sans GB",         # macOS 冬青黑体
+    "Microsoft YaHei",          # Windows 微软雅黑
+    "SimSun",                   # Windows 宋体
+    "SimHei"                    # Windows 黑体
+]
+
+# 英文字体（按优先级排序）
+english = [
+    "Inter",                    # 现代无衬线字体
+    "Segoe UI",                 # Windows 系统字体
+    "San Francisco",            # macOS 系统字体
+    "Helvetica Neue",           # macOS 经典字体
+    "Arial",                    # 通用字体
+    "Liberation Sans",          # Linux 开源字体
+    "DejaVu Sans"              # Linux 备选字体
+]
+
+# 后备字体（当中英文字体都无法找到时使用）
+fallback = [
+    "Noto Sans",               # Google Noto 通用字体
+    "Liberation Sans",         # 开源字体
+    "DejaVu Sans",            # Linux 通用字体
+    "Arial",                  # 最通用的字体
+    "sans-serif"              # 系统默认无衬线字体
+]
