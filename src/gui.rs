@@ -1,11 +1,11 @@
 #[cfg(feature = "gui")]
+use crate::config::{AppConfig, FontLoader};
+#[cfg(feature = "gui")]
 use anyhow::Result;
 #[cfg(feature = "gui")]
 use egui::*;
 #[cfg(feature = "gui")]
 use std::path::PathBuf;
-#[cfg(feature = "gui")]
-use crate::config::{AppConfig, FontLoader};
 
 #[cfg(feature = "gui")]
 pub struct GuiApp {

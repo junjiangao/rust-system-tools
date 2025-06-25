@@ -43,8 +43,7 @@ impl FontLoader {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppConfig {
     #[serde(default)]
     pub gui: GuiConfig,
@@ -71,7 +70,6 @@ pub struct FontFamilies {
     #[serde(default = "default_fallback_fonts")]
     pub fallback: Vec<String>,
 }
-
 
 impl Default for GuiConfig {
     fn default() -> Self {
@@ -155,11 +153,12 @@ impl AppConfig {
         let config_path = Self::config_path()?;
 
         if config_path.exists() {
-            let content = std::fs::read_to_string(&config_path)
-                .with_context(|| format!("Failed to read config file: {}", config_path.display()))?;
+            let content = std::fs::read_to_string(&config_path).with_context(|| {
+                format!("Failed to read config file: {}", config_path.display())
+            })?;
 
-            let config: AppConfig = toml::from_str(&content)
-                .with_context(|| "Failed to parse config file")?;
+            let config: AppConfig =
+                toml::from_str(&content).with_context(|| "Failed to parse config file")?;
 
             Ok(config)
         } else {
@@ -176,12 +175,12 @@ impl AppConfig {
 
         // 确保配置目录存在
         if let Some(parent) = config_path.parent() {
-            std::fs::create_dir_all(parent)
-                .with_context(|| format!("Failed to create config directory: {}", parent.display()))?;
+            std::fs::create_dir_all(parent).with_context(|| {
+                format!("Failed to create config directory: {}", parent.display())
+            })?;
         }
 
-        let content = toml::to_string_pretty(self)
-            .with_context(|| "Failed to serialize config")?;
+        let content = toml::to_string_pretty(self).with_context(|| "Failed to serialize config")?;
 
         std::fs::write(&config_path, content)
             .with_context(|| format!("Failed to write config file: {}", config_path.display()))?;
