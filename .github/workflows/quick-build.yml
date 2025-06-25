@@ -44,13 +44,10 @@ jobs:
       run: cargo fmt -- --check
 
     - name: Check with clippy
-      run: cargo clippy --features gui -- -D warnings
+      run: cargo clippy -- -D warnings
 
-    - name: Build with GUI
-      run: cargo build --features gui
-
-    - name: Build without GUI
-      run: cargo build --no-default-features
+    - name: Build project
+      run: cargo build
 
     - name: Run tests
-      run: cargo test --features gui
+      run: cargo test
