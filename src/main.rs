@@ -1,6 +1,8 @@
 use anyhow::{Context, Result};
+use tracing::{info, error};
+use tracing_subscriber;
+use std::path::{Path, PathBuf};
 use clap::Parser;
-use std::path::PathBuf;
 use zbus::Connection;
 
 mod config;
@@ -51,20 +53,24 @@ impl App {
     async fn run(&self, args: Args) -> Result<()> {
         match args.command {
             Commands::Mount { iso_path } => {
+                info!("开始控制台挂载 ISO: {:?}", iso_path);
                 self.run_console_mode(&iso_path).await?;
+                info!("完成控制台挂载 ISO: {:?}", iso_path);
             }
             Commands::ShowGui => {
+                info!("启动 GUI 界面");
                 self.run_with_gui().await?;
+                info!("退出 GUI 界面");
             }
         }
         Ok(())
     }
 
-    async fn run_console_mode(&self, iso_path: &PathBuf) -> Result<()> {
+    async fn run_console_mode(&self, iso_path: &Path) -> Result<()> {
         match self.mount_iso_workflow(iso_path).await {
-            Ok(_) => println!("ISO mount workflow completed successfully"),
+            Ok(_) => info!("ISO mount workflow completed successfully"),
             Err(e) => {
-                eprintln!("Error: {}", e);
+                error!("Error during ISO mount workflow: {}", e);
                 return Err(e);
             }
         }
@@ -72,41 +78,49 @@ impl App {
     }
 
     async fn run_with_gui(&self) -> Result<()> {
-        println!("Starting GUI mode...");
+        info!("Starting GUI mode...");
         run_gui()
     }
 
-    async fn mount_iso_workflow(&self, iso_path: &PathBuf) -> Result<()> {
+    async fn mount_iso_workflow(&self, iso_path: &Path) -> Result<()> {
         let mounter = IsoMounter::new(&self.connection).await?;
         let mounted_iso = mounter.mount_iso(iso_path).await?;
 
-        println!("ISO successfully mounted at: {}", mounted_iso.mount_path);
+        info!("ISO successfully mounted at: {}", mounted_iso.mount_path);
 
-        // 在这里可以添加其他操作，比如文件处理、数据分析等
+        // Here you can extend with additional operations, e.g., file processing, data analysis, etc.
         self.process_mounted_files(&mounted_iso.mount_path).await?;
 
         mounter.unmount_iso(mounted_iso).await?;
         Ok(())
     }
 
-    /// 示例扩展方法：处理挂载的文件
+    /// Example extension method: process the mounted files
     async fn process_mounted_files(&self, mount_path: &str) -> Result<()> {
-        println!("Processing files in mount point: {}", mount_path);
-        // 这里可以添加实际的文件处理逻辑
-        // 例如：
-        // - 扫描文件列表
-        // - 提取特定文件
-        // - 分析ISO内容
-        // - 数据处理等
+        info!("Processing files in mount point: {}", mount_path);
+        // Insert real file processing logic here
+        // For example:
+        // - Scan file list
+        // - Extract specific files
+        // - Analyze ISO contents
+        // - Data processing, etc.
 
-        println!("File processing completed");
+        info!("File processing completed");
         Ok(())
     }
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Initialize tracing subscriber for logging
+    tracing_subscriber::fmt::init();
+
     let args = Args::parse();
     let app = App::new().await?;
-    app.run(args).await
+
+    if let Err(e) = app.run(args).await {
+        error!("Application error: {:?}", e);
+        std::process::exit(1);
+    }
+    Ok(())
 }

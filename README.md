@@ -2,7 +2,7 @@
 
 [![Build](https://github.com/junjiangao/rust-study-demo/actions/workflows/quick-build.yml/badge.svg?event=push)](https://github.com/junjiangao/rust-study-demo/actions/workflows/quick-build.yml)
 
-一个用于通过UDisks2接口挂载ISO文件的Rust工具，支持命令行和GUI两种模式。
+这是一个通过UDisks2服务挂载ISO文件的Rust工具，支持命令行和图形界面（GUI）两种工作模式。
 
 ## 功能
 
