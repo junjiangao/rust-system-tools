@@ -1,8 +1,8 @@
 use anyhow::{Context, Result};
-use tracing::{info, error};
-use tracing_subscriber;
-use std::path::{Path, PathBuf};
 use clap::Parser;
+use std::path::{Path, PathBuf};
+use tracing::{error, info};
+use tracing_subscriber;
 use zbus::Connection;
 
 mod config;
