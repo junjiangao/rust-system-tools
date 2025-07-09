@@ -29,7 +29,7 @@ impl FontLoader {
                 if let Some(_face) = self.db.face(id) {
                     // 尝试从face中获取数据
                     if let Some(data) = self.db.with_face_data(id, |font_data, face_index| {
-                        println!("Found font: {} (face index: {})", family_name, face_index);
+                        println!("Found font: {family_name} (face index: {face_index})");
                         Some(font_data.to_vec())
                     }) {
                         return data;

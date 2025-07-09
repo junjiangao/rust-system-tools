@@ -64,7 +64,7 @@ impl<'a> UDisks2Manager<'a> {
             .deserialize()
             .context("Failed to deserialize loop device object path")?;
 
-        println!("Loop device created: {}", object_path);
+        println!("Loop device created: {object_path}");
 
         UDisks2Filesystem::new(self.connection, object_path.into()).await
     }
@@ -94,7 +94,7 @@ impl<'a> UDisks2Filesystem<'a> {
             .deserialize()
             .context("Failed to deserialize mount path")?;
 
-        println!("Mounted at: {}", mount_path);
+        println!("Mounted at: {mount_path}");
         Ok(mount_path)
     }
 
@@ -108,7 +108,7 @@ impl<'a> UDisks2Filesystem<'a> {
         let mount_point = mount_points.first().context("No mount points available")?;
 
         let mount_point_str = String::from_utf8_lossy(mount_point);
-        println!("Actual mount point: {}", mount_point_str);
+        println!("Actual mount point: {mount_point_str}");
         Ok(())
     }
 
