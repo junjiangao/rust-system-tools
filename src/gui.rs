@@ -2,6 +2,8 @@ use crate::config::{AppConfig, FontLoader};
 use anyhow::Result;
 use egui::*;
 use std::path::PathBuf;
+#[allow(unused_imports)]
+use tracing::{debug, info, warn};
 
 pub struct GuiApp {
     iso_path: Option<PathBuf>,
@@ -173,9 +175,9 @@ fn setup_fonts(ctx: &egui::Context, config: &AppConfig) -> Result<()> {
             monospace_fonts.push(font_id.clone());
         }
 
-        println!("Loaded {} fonts: {:?}", loaded_fonts.len(), loaded_fonts);
+        debug!("Loaded {} fonts: {:?}", loaded_fonts.len(), loaded_fonts);
     } else {
-        println!("No fonts could be loaded from config, using default system fonts");
+        info!("No fonts could be loaded from config, using default system fonts");
     }
 
     ctx.set_fonts(fonts);
