@@ -7,7 +7,9 @@ use zbus::Connection;
 
 mod config;
 mod udisks2;
+mod wim;
 use udisks2::IsoMounter;
+use wim::WimParser;
 
 mod gui;
 use gui::run_gui;
@@ -50,17 +52,88 @@ impl App {
         Ok(Self { connection })
     }
 
-    /// 读取并解析挂载目录中的系统信息，尝试从多个可能的来源获取版本和架构信息
+    /// 读取并解析挂载目录中的系统信息，优先使用 WIM 解析器
     async fn read_and_parse_system_info(&self, mount_path: &str) -> Result<(String, String)> {
+        use std::path::Path;
+
+        info!("开始分析挂载目录中的系统信息");
+
+        // 优先尝试解析 WIM 文件
+        let wim_paths = vec![
+            format!("{}/sources/install.wim", mount_path),
+            format!("{}/sources/install.esd", mount_path),
+        ];
+
+        for wim_path in wim_paths {
+            if Path::new(&wim_path).exists() {
+                info!("找到 WIM 文件: {}", wim_path);
+
+                match self.parse_wim_file(&wim_path).await {
+                    Ok((version, arch)) => {
+                        info!("成功从 WIM 文件解析版本信息");
+                        return Ok((version, arch));
+                    }
+                    Err(e) => {
+                        info!("WIM 文件解析失败，继续尝试其他方法: {}", e);
+                    }
+                }
+            }
+        }
+
+        // 如果 WIM 解析失败，回退到原有的文本文件分析方法
+        info!("WIM 解析失败，回退到文本文件分析方法");
+        self.parse_text_based_system_info(mount_path).await
+    }
+
+    /// 解析 WIM 文件获取版本信息
+    async fn parse_wim_file(&self, wim_path: &str) -> Result<(String, String)> {
+        let mut parser = WimParser::new(wim_path)?;
+
+        // 完整解析 WIM 文件
+        parser.parse_full().context("解析 WIM 文件失败")?;
+
+        // 获取 Windows 版本信息
+        if let Some(windows_info) = parser.get_windows_info() {
+            info!("检测到 Windows 镜像: {}", windows_info);
+
+            // 显示所有镜像的详细信息
+            for image in parser.get_images() {
+                info!("  {}", image);
+            }
+
+            return Ok((windows_info.version, windows_info.architecture));
+        }
+
+        // 如果不是 Windows 镜像，尝试从第一个镜像获取信息
+        if let Some(first_image) = parser.get_images().first() {
+            let version = first_image
+                .version
+                .clone()
+                .unwrap_or_else(|| first_image.name.clone());
+
+            let arch = first_image
+                .architecture
+                .clone()
+                .unwrap_or_else(|| "Unknown".to_string());
+
+            info!("从第一个镜像获取版本信息: {} [{}]", version, arch);
+            return Ok((version, arch));
+        }
+
+        Err(anyhow::anyhow!("WIM 文件中没有找到有效的镜像信息"))
+    }
+
+    /// 基于文本文件的系统信息解析（原有方法）
+    async fn parse_text_based_system_info(&self, mount_path: &str) -> Result<(String, String)> {
         use std::fs;
         use std::path::Path;
 
         // 尝试读取可能的信息来源
         let info_sources = vec![
-            format!("{mount_path}/sources/idwbinfo.txt"),
-            format!("{mount_path}/sources/lang.ini"),
-            format!("{mount_path}/README.TXT"),
-            format!("{mount_path}/sources/ei.cfg"),
+            format!("{}/sources/idwbinfo.txt", mount_path),
+            format!("{}/sources/lang.ini", mount_path),
+            format!("{}/README.TXT", mount_path),
+            format!("{}/sources/ei.cfg", mount_path),
         ];
 
         for source_path in info_sources {
@@ -226,7 +299,7 @@ impl App {
 async fn main() -> Result<()> {
     // 初始化 tracing 日志系统，设置合适的日志级别和格式
     tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
+        .with_max_level(tracing::Level::DEBUG)
         .with_target(false) // 不显示模块路径，简化输出
         .with_level(true) // 显示日志级别
         .with_thread_ids(false) // 不显示线程ID，简化输出
