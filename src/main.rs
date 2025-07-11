@@ -50,58 +50,99 @@ impl App {
         Ok(Self { connection })
     }
 
-    /// 读取并解析挂载目录中的source/install.wim头部，提取系统版本和架构信息
-    async fn read_and_parse_wim_header(&self, mount_path: &str) -> Result<(String, String)> {
-        use quick_xml::Reader;
-        use quick_xml::events::Event;
-        use quick_xml::name::QName;
-        use std::fs::File;
-        use std::io::Read as _;
+    /// 读取并解析挂载目录中的系统信息，尝试从多个可能的来源获取版本和架构信息
+    async fn read_and_parse_system_info(&self, mount_path: &str) -> Result<(String, String)> {
+        use std::fs;
+        use std::path::Path;
 
-        let wim_path = format!("{mount_path}/sources/install.wim");
-        let mut file = File::open(&wim_path).context("无法打开install.wim文件")?;
+        // 尝试读取可能的信息来源
+        let info_sources = vec![
+            format!("{mount_path}/sources/idwbinfo.txt"),
+            format!("{mount_path}/sources/lang.ini"),
+            format!("{mount_path}/README.TXT"),
+            format!("{mount_path}/sources/ei.cfg"),
+        ];
 
-        let mut buffer = vec![0u8; 4096];
-        file.read_exact(&mut buffer)
-            .context("读取install.wim文件头失败")?;
-
-        let mut reader = Reader::from_reader(&buffer[..]);
-        reader.trim_text(true);
-
-        let mut version = String::new();
-        let mut arch = String::new();
-
-        let mut in_image = false;
-
-        loop {
-            match reader.read_event() {
-                Ok(Event::Start(ref e)) => {
-                    if e.name() == QName(b"IMAGE") {
-                        in_image = true;
-                    } else if in_image {
-                        if e.name() == QName(b"ARCH") {
-                            arch = reader
-                                .read_text(QName(b"ARCH"))
-                                .unwrap_or_default()
-                                .to_string();
-                        } else if e.name() == QName(b"NAME") {
-                            version = reader
-                                .read_text(QName(b"NAME"))
-                                .unwrap_or_default()
-                                .to_string();
-                        }
+        for source_path in info_sources {
+            if Path::new(&source_path).exists() {
+                match fs::read_to_string(&source_path) {
+                    Ok(content) => {
+                        info!("读取到信息文件: {}", source_path);
+                        return self.parse_system_info_from_text(&content);
+                    }
+                    Err(e) => {
+                        info!("无法读取文件 {}: {}", source_path, e);
                     }
                 }
-                Ok(Event::End(ref e)) => {
-                    if e.name() == QName(b"IMAGE") {
+            }
+        }
+
+        // 如果没有找到信息文件，尝试基于目录结构推断
+        self.infer_system_info_from_structure(mount_path).await
+    }
+
+    /// 从文本内容中解析系统信息
+    fn parse_system_info_from_text(&self, content: &str) -> Result<(String, String)> {
+        let mut version = String::from("Unknown");
+        let mut arch = String::from("Unknown");
+
+        // 查找版本信息
+        if content.contains("Windows 11") {
+            version = "Windows 11".to_string();
+        } else if content.contains("Windows 10") {
+            version = "Windows 10".to_string();
+        } else if content.contains("Windows Server") {
+            version = "Windows Server".to_string();
+        }
+
+        // 查找架构信息
+        if content.contains("x64") || content.contains("amd64") {
+            arch = "x64".to_string();
+        } else if content.contains("x86") {
+            arch = "x86".to_string();
+        } else if content.contains("arm64") {
+            arch = "ARM64".to_string();
+        }
+
+        Ok((version, arch))
+    }
+
+    /// 基于目录结构推断系统信息
+    async fn infer_system_info_from_structure(&self, mount_path: &str) -> Result<(String, String)> {
+        use std::fs;
+        use std::path::Path;
+
+        let sources_path = format!("{mount_path}/sources");
+        let _system_32_path = format!("{mount_path}/sources/sxs");
+
+        let mut version = String::from("Windows ISO");
+        let mut arch = String::from("Unknown");
+
+        // 检查是否存在典型的 Windows ISO 结构
+        if Path::new(&sources_path).exists() {
+            if let Ok(entries) = fs::read_dir(&sources_path) {
+                for entry in entries.flatten() {
+                    let file_name = entry.file_name();
+                    let file_name_str = file_name.to_string_lossy();
+
+                    if file_name_str.contains("install.wim")
+                        || file_name_str.contains("install.esd")
+                    {
+                        info!("检测到 Windows 安装文件: {}", file_name_str);
+                        version = "Windows".to_string();
+
+                        // 尝试通过文件大小推断架构（这是一个粗略的方法）
+                        if let Ok(metadata) = entry.metadata() {
+                            let size_gb = metadata.len() / (1024 * 1024 * 1024);
+                            if size_gb > 4 {
+                                arch = "x64".to_string();
+                            } else {
+                                arch = "x86".to_string();
+                            }
+                        }
                         break;
                     }
                 }
-                Ok(Event::Eof) => break,
-                Err(e) => {
-                    return Err(anyhow::anyhow!("XML 解析失败: {}", e));
-                }
-                _ => {}
             }
         }
 
@@ -146,17 +187,17 @@ impl App {
 
         info!("ISO successfully mounted at: {}", mounted_iso.mount_path);
 
-        // 读取并打印install.wim文件头信息
+        // 读取并打印系统信息
         match self
-            .read_and_parse_wim_header(&mounted_iso.mount_path)
+            .read_and_parse_system_info(&mounted_iso.mount_path)
             .await
         {
             Ok((version, arch)) => {
-                info!("WIM 文件版本: {}", version);
-                info!("WIM 文件架构: {}", arch);
+                info!("系统版本: {}", version);
+                info!("系统架构: {}", arch);
             }
             Err(e) => {
-                error!("读取WIM文件头失败: {}", e);
+                error!("读取系统信息失败: {}", e);
             }
         }
 
@@ -183,8 +224,13 @@ impl App {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Initialize tracing subscriber for logging
-    tracing_subscriber::fmt::init();
+    // 初始化 tracing 日志系统，设置合适的日志级别和格式
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::INFO)
+        .with_target(false) // 不显示模块路径，简化输出
+        .with_level(true) // 显示日志级别
+        .with_thread_ids(false) // 不显示线程ID，简化输出
+        .init();
 
     let args = Args::parse();
     let app = App::new().await?;

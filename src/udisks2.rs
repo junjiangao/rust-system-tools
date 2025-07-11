@@ -5,6 +5,8 @@ use std::{
     os::fd::AsFd,
     path::{Path, PathBuf},
 };
+#[allow(unused_imports)]
+use tracing::{debug, info, warn};
 use zbus::{
     Connection, Proxy,
     zvariant::{Fd, ObjectPath, OwnedObjectPath, Value},
@@ -64,7 +66,7 @@ impl<'a> UDisks2Manager<'a> {
             .deserialize()
             .context("Failed to deserialize loop device object path")?;
 
-        println!("Loop device created: {object_path}");
+        info!("Loop device created: {object_path}");
 
         UDisks2Filesystem::new(self.connection, object_path.into()).await
     }
@@ -94,7 +96,7 @@ impl<'a> UDisks2Filesystem<'a> {
             .deserialize()
             .context("Failed to deserialize mount path")?;
 
-        println!("Mounted at: {mount_path}");
+        info!("Mounted at: {mount_path}");
         Ok(mount_path)
     }
 
@@ -108,7 +110,7 @@ impl<'a> UDisks2Filesystem<'a> {
         let mount_point = mount_points.first().context("No mount points available")?;
 
         let mount_point_str = String::from_utf8_lossy(mount_point);
-        println!("Actual mount point: {mount_point_str}");
+        debug!("Actual mount point: {mount_point_str}");
         Ok(())
     }
 
@@ -119,7 +121,7 @@ impl<'a> UDisks2Filesystem<'a> {
             .await
             .context("Failed to unmount filesystem")?;
 
-        println!("Unmounted successfully");
+        info!("Unmounted successfully");
         Ok(())
     }
 
@@ -139,7 +141,7 @@ impl<'a> UDisks2Filesystem<'a> {
             .await
             .context("Failed to delete loop device")?;
 
-        println!("Loop device deleted: {}", self.object_path);
+        info!("Loop device deleted: {}", self.object_path);
         Ok(())
     }
 }
@@ -164,7 +166,7 @@ impl<'a> IsoMounter<'a> {
         let file = File::open(path)
             .with_context(|| format!("Failed to open ISO file: {}", path.display()))?;
         let iso_fd = Fd::from(file.as_fd());
-        println!("Opening ISO file: {} (fd: {})", path.display(), iso_fd);
+        debug!("Opening ISO file: {} (fd: {})", path.display(), iso_fd);
 
         // Setup loop device and mount
         let filesystem = self.manager.setup_loop_device(iso_fd).await?;
@@ -180,7 +182,7 @@ impl<'a> IsoMounter<'a> {
 
     /// Unmount and cleanup an ISO filesystem
     pub async fn unmount_iso(&self, mounted_iso: MountedIso<'a>) -> Result<()> {
-        println!("Unmounting ISO: {}", mounted_iso.iso_path.display());
+        info!("Unmounting ISO: {}", mounted_iso.iso_path.display());
         mounted_iso.filesystem.unmount().await?;
         mounted_iso.filesystem.delete().await?;
         Ok(())

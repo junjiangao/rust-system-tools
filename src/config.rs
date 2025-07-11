@@ -1,6 +1,8 @@
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+#[allow(unused_imports)]
+use tracing::{debug, info, warn};
 
 pub struct FontLoader {
     db: fontdb::Database,
@@ -29,7 +31,7 @@ impl FontLoader {
                 if let Some(_face) = self.db.face(id) {
                     // 尝试从face中获取数据
                     if let Some(data) = self.db.with_face_data(id, |font_data, face_index| {
-                        println!("Found font: {family_name} (face index: {face_index})");
+                        debug!("Found font: {family_name} (face index: {face_index})");
                         Some(font_data.to_vec())
                     }) {
                         return data;
