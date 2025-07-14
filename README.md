@@ -134,6 +134,45 @@ sudo apt-get install pkg-config libdbus-1-dev libgtk-3-dev \
 cargo build --release
 ```
 
+## 测试
+
+项目包含了完整的测试套件，包括单元测试和集成测试。
+
+### 运行所有测试
+
+```bash
+cargo test
+```
+
+### 运行特定测试
+
+```bash
+# 运行WIM解析器测试
+cargo test --test wim_parser_test
+
+# 运行特定测试函数
+cargo test --test wim_parser_test test_parse_arch_from_xml
+```
+
+### 使用测试脚本
+
+```bash
+# 运行所有测试
+./scripts/run_tests.sh
+
+# 运行特定测试
+./scripts/run_tests.sh test_parse_arch_from_xml
+```
+
+### 测试覆盖范围
+
+- WIM文件解析器的架构识别功能
+- XML数据解析和版本信息提取
+- 架构值映射（x86、x64、ARM、ARM64）
+- 优先级和回退机制测试
+
+更多测试信息请查看 [tests/README.md](tests/README.md)。
+
 ## 备注
 
 - 需要系统安装 UDisks2 服务

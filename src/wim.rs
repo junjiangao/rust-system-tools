@@ -336,7 +336,7 @@ impl WimParser {
     }
 
     /// 解析单个镜像的 XML 信息
-    fn parse_single_image_xml(&self, image_xml: &str) -> Result<ImageInfo> {
+    pub fn parse_single_image_xml(&self, image_xml: &str) -> Result<ImageInfo> {
         // 辅助函数：从 XML 中提取标签值
         let extract_tag_value = |xml: &str, tag: &str| -> Option<String> {
             let start_tag = format!("<{tag}>");
@@ -367,9 +367,10 @@ impl WimParser {
         };
 
         // 提取各种信息
-        let name = extract_tag_value(image_xml, "NAME").unwrap_or_else(|| format!("Image {index}"));
-        let description =
-            extract_tag_value(image_xml, "DESCRIPTION").unwrap_or_else(|| "Unknown".to_string());
+        let name =
+            extract_tag_value(image_xml, "DISPLAYNAME").unwrap_or_else(|| format!("Image {index}"));
+        let description = extract_tag_value(image_xml, "DISPLAYDESCRIPTION")
+            .unwrap_or_else(|| "Unknown".to_string());
         let dir_count = extract_tag_value(image_xml, "DIRCOUNT")
             .and_then(|s| s.parse().ok())
             .unwrap_or(0);
@@ -380,8 +381,12 @@ impl WimParser {
             .and_then(|s| s.parse().ok())
             .unwrap_or(0);
 
-        // 尝试从名称中提取版本和架构信息
-        let (version, architecture) = self.extract_version_and_arch(&name, &description);
+        // 尝试从XML中的ARCH标签解析架构信息
+        let arch_from_xml = self.parse_arch_from_xml(image_xml);
+
+        // 从名称中提取版本信息，架构信息优先使用XML中的ARCH标签
+        let (version, arch_from_name) = self.extract_version_and_arch(&name, &description);
+        let architecture = arch_from_xml.or(arch_from_name);
 
         let image_info = ImageInfo {
             index,
@@ -441,6 +446,41 @@ impl WimParser {
         };
 
         (version, architecture)
+    }
+
+    /// 从XML中的ARCH标签解析架构信息
+    pub fn parse_arch_from_xml(&self, image_xml: &str) -> Option<String> {
+        // 辅助函数：从 XML 中提取标签值
+        let extract_tag_value = |xml: &str, tag: &str| -> Option<String> {
+            let start_tag = format!("<{tag}>");
+            let end_tag = format!("</{tag}>");
+
+            if let Some(start) = xml.find(&start_tag) {
+                if let Some(end) = xml.find(&end_tag) {
+                    let value_start = start + start_tag.len();
+                    if value_start < end {
+                        return Some(xml[value_start..end].trim().to_string());
+                    }
+                }
+            }
+            None
+        };
+
+        // 提取ARCH标签值
+        if let Some(arch_value) = extract_tag_value(image_xml, "ARCH") {
+            match arch_value.as_str() {
+                "0" => Some("x86".to_string()),
+                "9" => Some("x64".to_string()),
+                "5" => Some("ARM".to_string()),
+                "12" => Some("ARM64".to_string()),
+                _ => {
+                    debug!("未知的架构值: {}", arch_value);
+                    None
+                }
+            }
+        } else {
+            None
+        }
     }
 
     /// 获取所有镜像信息
@@ -519,13 +559,13 @@ impl std::fmt::Display for ImageInfo {
         if let Some(ref arch) = self.architecture {
             write!(f, " [{arch}]")?;
         }
-        write!(f, "\n  描述: {}", self.description)?;
+        write!(f, " | 描述: {}", self.description)?;
         write!(
             f,
-            "\n  文件数: {}, 目录数: {}",
+            " | 文件数: {}, 目录数: {}",
             self.file_count, self.dir_count
         )?;
-        write!(f, "\n  总大小: {} MB", self.total_bytes / (1024 * 1024))?;
+        write!(f, " | 总大小: {} MB", self.total_bytes / (1024 * 1024))?;
         Ok(())
     }
 }
@@ -687,8 +727,8 @@ impl std::fmt::Display for WindowsInfo {
         if !self.editions.is_empty() {
             write!(f, " - 版本: {}", self.editions.join(", "))?;
         }
-        write!(f, "\n  镜像数量: {}", self.image_count)?;
-        write!(f, "\n  总大小: {} MB", self.total_size / (1024 * 1024))?;
+        write!(f, " | 镜像数量: {}", self.image_count)?;
+        write!(f, " | 总大小: {} MB", self.total_size / (1024 * 1024))?;
         Ok(())
     }
 }

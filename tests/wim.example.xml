@@ -1,0 +1,238 @@
+<WIM>
+    <TOTALBYTES>5970951616</TOTALBYTES>
+    <IMAGE INDEX="1">
+        <DIRCOUNT>30978</DIRCOUNT>
+        <FILECOUNT>136042</FILECOUNT>
+        <TOTALBYTES>22577165103</TOTALBYTES>
+        <HARDLINKBYTES>9513697284</HARDLINKBYTES>
+        <CREATIONTIME>
+            <HIGHPART>0x01DB8ED4</HIGHPART>
+            <LOWPART>0x2718CD8E</LOWPART>
+        </CREATIONTIME>
+        <LASTMODIFICATIONTIME>
+            <HIGHPART>0x01DB8EDB</HIGHPART>
+            <LOWPART>0x3BED47F9</LOWPART>
+        </LASTMODIFICATIONTIME>
+        <WIMBOOT>0</WIMBOOT>
+        <WINDOWS>
+            <ARCH>9</ARCH>
+            <PRODUCTNAME>Microsoft® Windows® Operating System</PRODUCTNAME>
+            <EDITIONID>Education</EDITIONID>
+            <INSTALLATIONTYPE>Client</INSTALLATIONTYPE>
+            <SERVICINGDATA>
+                <GDRDUREVISION>20250306</GDRDUREVISION>
+                <PKEYCONFIGVERSION>10.0.26100.2894;2016-01-01T00:00:00Z</PKEYCONFIGVERSION>
+                <IMAGESTATE>IMAGE_STATE_GENERALIZE_RESEAL_TO_OOBE</IMAGESTATE>
+            </SERVICINGDATA>
+            <PRODUCTTYPE>WinNT</PRODUCTTYPE>
+            <PRODUCTSUITE>Terminal Server</PRODUCTSUITE>
+            <LANGUAGES>
+                <LANGUAGE>zh-CN</LANGUAGE>
+                <FALLBACK LANGUAGE="zh-CN">en-US</FALLBACK>
+                <DEFAULT>zh-CN</DEFAULT>
+            </LANGUAGES>
+            <VERSION>
+                <MAJOR>10</MAJOR>
+                <MINOR>0</MINOR>
+                <BUILD>26100</BUILD>
+                <SPBUILD>3476</SPBUILD>
+                <SPLEVEL>0</SPLEVEL>
+                <BRANCH>ge_release</BRANCH>
+            </VERSION>
+            <SYSTEMROOT>WINDOWS</SYSTEMROOT>
+        </WINDOWS>
+        <FLAGS>Education</FLAGS>
+        <DISPLAYNAME>Windows 11 教育版</DISPLAYNAME>
+        <DISPLAYDESCRIPTION>Windows 11 教育版</DISPLAYDESCRIPTION>
+        <NAME>Windows 11 Education</NAME>
+        <DESCRIPTION>Windows 11 Education</DESCRIPTION>
+    </IMAGE>
+    <IMAGE INDEX="2">
+        <DIRCOUNT>30978</DIRCOUNT>
+        <FILECOUNT>136047</FILECOUNT>
+        <TOTALBYTES>22577291738</TOTALBYTES>
+        <HARDLINKBYTES>9513697284</HARDLINKBYTES>
+        <CREATIONTIME>
+            <HIGHPART>0x01DB8ED6</HIGHPART>
+            <LOWPART>0xDA8944FF</LOWPART>
+        </CREATIONTIME>
+        <LASTMODIFICATIONTIME>
+            <HIGHPART>0x01DB8EDB</HIGHPART>
+            <LOWPART>0x4C326A80</LOWPART>
+        </LASTMODIFICATIONTIME>
+        <WIMBOOT>0</WIMBOOT>
+        <WINDOWS>
+            <ARCH>9</ARCH>
+            <PRODUCTNAME>Microsoft® Windows® Operating System</PRODUCTNAME>
+            <EDITIONID>Enterprise</EDITIONID>
+            <INSTALLATIONTYPE>Client</INSTALLATIONTYPE>
+            <SERVICINGDATA>
+                <GDRDUREVISION>20250306</GDRDUREVISION>
+                <PKEYCONFIGVERSION>10.0.26100.2894;2016-01-01T00:00:00Z</PKEYCONFIGVERSION>
+                <IMAGESTATE>IMAGE_STATE_GENERALIZE_RESEAL_TO_OOBE</IMAGESTATE>
+            </SERVICINGDATA>
+            <PRODUCTTYPE>WinNT</PRODUCTTYPE>
+            <PRODUCTSUITE>Terminal Server</PRODUCTSUITE>
+            <LANGUAGES>
+                <LANGUAGE>zh-CN</LANGUAGE>
+                <FALLBACK LANGUAGE="zh-CN">en-US</FALLBACK>
+                <DEFAULT>zh-CN</DEFAULT>
+            </LANGUAGES>
+            <VERSION>
+                <MAJOR>10</MAJOR>
+                <MINOR>0</MINOR>
+                <BUILD>26100</BUILD>
+                <SPBUILD>3476</SPBUILD>
+                <SPLEVEL>0</SPLEVEL>
+                <BRANCH>ge_release</BRANCH>
+            </VERSION>
+            <SYSTEMROOT>WINDOWS</SYSTEMROOT>
+        </WINDOWS>
+        <FLAGS>Enterprise</FLAGS>
+        <DISPLAYNAME>Windows 11 企业版</DISPLAYNAME>
+        <DISPLAYDESCRIPTION>Windows 11 企业版</DISPLAYDESCRIPTION>
+        <NAME>Windows 11 Enterprise</NAME>
+        <DESCRIPTION>Windows 11 Enterprise</DESCRIPTION>
+    </IMAGE>
+    <IMAGE INDEX="3">
+        <DIRCOUNT>30978</DIRCOUNT>
+        <FILECOUNT>136041</FILECOUNT>
+        <TOTALBYTES>22598442056</TOTALBYTES>
+        <HARDLINKBYTES>9513697284</HARDLINKBYTES>
+        <CREATIONTIME>
+            <HIGHPART>0x01DB8ED3</HIGHPART>
+            <LOWPART>0x9C4A303E</LOWPART>
+        </CREATIONTIME>
+        <LASTMODIFICATIONTIME>
+            <HIGHPART>0x01DB8EDB</HIGHPART>
+            <LOWPART>0x5C648476</LOWPART>
+        </LASTMODIFICATIONTIME>
+        <WIMBOOT>0</WIMBOOT>
+        <WINDOWS>
+            <ARCH>9</ARCH>
+            <PRODUCTNAME>Microsoft® Windows® Operating System</PRODUCTNAME>
+            <EDITIONID>Professional</EDITIONID>
+            <INSTALLATIONTYPE>Client</INSTALLATIONTYPE>
+            <SERVICINGDATA>
+                <GDRDUREVISION>0</GDRDUREVISION>
+                <PKEYCONFIGVERSION>10.0.26100.2894;2016-01-01T00:00:00Z</PKEYCONFIGVERSION>
+                <IMAGESTATE>IMAGE_STATE_GENERALIZE_RESEAL_TO_OOBE</IMAGESTATE>
+            </SERVICINGDATA>
+            <PRODUCTTYPE>WinNT</PRODUCTTYPE>
+            <PRODUCTSUITE>Terminal Server</PRODUCTSUITE>
+            <LANGUAGES>
+                <LANGUAGE>zh-CN</LANGUAGE>
+                <FALLBACK LANGUAGE="zh-CN">en-US</FALLBACK>
+                <DEFAULT>zh-CN</DEFAULT>
+            </LANGUAGES>
+            <VERSION>
+                <MAJOR>10</MAJOR>
+                <MINOR>0</MINOR>
+                <BUILD>26100</BUILD>
+                <SPBUILD>3476</SPBUILD>
+                <SPLEVEL>0</SPLEVEL>
+                <BRANCH>ge_release</BRANCH>
+            </VERSION>
+            <SYSTEMROOT>WINDOWS</SYSTEMROOT>
+        </WINDOWS>
+        <NAME>Windows 11 Pro</NAME>
+        <DESCRIPTION>Windows 11 Pro</DESCRIPTION>
+        <FLAGS>Professional</FLAGS>
+        <DISPLAYNAME>Windows 11 专业版</DISPLAYNAME>
+        <DISPLAYDESCRIPTION>Windows 11 专业版</DISPLAYDESCRIPTION>
+    </IMAGE>
+    <IMAGE INDEX="4">
+        <DIRCOUNT>30978</DIRCOUNT>
+        <FILECOUNT>136044</FILECOUNT>
+        <TOTALBYTES>22577215741</TOTALBYTES>
+        <HARDLINKBYTES>9513697284</HARDLINKBYTES>
+        <CREATIONTIME>
+            <HIGHPART>0x01DB8ED5</HIGHPART>
+            <LOWPART>0x3E2FFD45</LOWPART>
+        </CREATIONTIME>
+        <LASTMODIFICATIONTIME>
+            <HIGHPART>0x01DB8EDB</HIGHPART>
+            <LOWPART>0x6C2B541B</LOWPART>
+        </LASTMODIFICATIONTIME>
+        <WIMBOOT>0</WIMBOOT>
+        <WINDOWS>
+            <ARCH>9</ARCH>
+            <PRODUCTNAME>Microsoft® Windows® Operating System</PRODUCTNAME>
+            <EDITIONID>ProfessionalEducation</EDITIONID>
+            <INSTALLATIONTYPE>Client</INSTALLATIONTYPE>
+            <SERVICINGDATA>
+                <GDRDUREVISION>20250306</GDRDUREVISION>
+                <PKEYCONFIGVERSION>10.0.26100.2894;2016-01-01T00:00:00Z</PKEYCONFIGVERSION>
+                <IMAGESTATE>IMAGE_STATE_GENERALIZE_RESEAL_TO_OOBE</IMAGESTATE>
+            </SERVICINGDATA>
+            <PRODUCTTYPE>WinNT</PRODUCTTYPE>
+            <PRODUCTSUITE>Terminal Server</PRODUCTSUITE>
+            <LANGUAGES>
+                <LANGUAGE>zh-CN</LANGUAGE>
+                <FALLBACK LANGUAGE="zh-CN">en-US</FALLBACK>
+                <DEFAULT>zh-CN</DEFAULT>
+            </LANGUAGES>
+            <VERSION>
+                <MAJOR>10</MAJOR>
+                <MINOR>0</MINOR>
+                <BUILD>26100</BUILD>
+                <SPBUILD>3476</SPBUILD>
+                <SPLEVEL>0</SPLEVEL>
+                <BRANCH>ge_release</BRANCH>
+            </VERSION>
+            <SYSTEMROOT>WINDOWS</SYSTEMROOT>
+        </WINDOWS>
+        <FLAGS>ProfessionalEducation</FLAGS>
+        <DISPLAYNAME>Windows 11 专业教育版</DISPLAYNAME>
+        <DISPLAYDESCRIPTION>Windows 11 专业教育版</DISPLAYDESCRIPTION>
+        <NAME>Windows 11 Pro Education</NAME>
+        <DESCRIPTION>Windows 11 Pro Education</DESCRIPTION>
+    </IMAGE>
+    <IMAGE INDEX="5">
+        <DIRCOUNT>30978</DIRCOUNT>
+        <FILECOUNT>136046</FILECOUNT>
+        <TOTALBYTES>22577266379</TOTALBYTES>
+        <HARDLINKBYTES>9513697284</HARDLINKBYTES>
+        <CREATIONTIME>
+            <HIGHPART>0x01DB8ED6</HIGHPART>
+            <LOWPART>0x530D3DBD</LOWPART>
+        </CREATIONTIME>
+        <LASTMODIFICATIONTIME>
+            <HIGHPART>0x01DB8EDB</HIGHPART>
+            <LOWPART>0x7BDA49A8</LOWPART>
+        </LASTMODIFICATIONTIME>
+        <WIMBOOT>0</WIMBOOT>
+        <WINDOWS>
+            <ARCH>9</ARCH>
+            <PRODUCTNAME>Microsoft® Windows® Operating System</PRODUCTNAME>
+            <EDITIONID>ProfessionalWorkstation</EDITIONID>
+            <INSTALLATIONTYPE>Client</INSTALLATIONTYPE>
+            <SERVICINGDATA>
+                <GDRDUREVISION>20250306</GDRDUREVISION>
+                <PKEYCONFIGVERSION>10.0.26100.2894;2016-01-01T00:00:00Z</PKEYCONFIGVERSION>
+                <IMAGESTATE>IMAGE_STATE_GENERALIZE_RESEAL_TO_OOBE</IMAGESTATE>
+            </SERVICINGDATA>
+            <PRODUCTTYPE>WinNT</PRODUCTTYPE>
+            <PRODUCTSUITE>Terminal Server</PRODUCTSUITE>
+            <LANGUAGES>
+                <LANGUAGE>zh-CN</LANGUAGE>
+                <FALLBACK LANGUAGE="zh-CN">en-US</FALLBACK>
+                <DEFAULT>zh-CN</DEFAULT>
+            </LANGUAGES>
+            <VERSION>
+                <MAJOR>10</MAJOR>
+                <MINOR>0</MINOR>
+                <BUILD>26100</BUILD>
+                <SPBUILD>3476</SPBUILD>
+                <SPLEVEL>0</SPLEVEL>
+                <BRANCH>ge_release</BRANCH>
+            </VERSION>
+            <SYSTEMROOT>WINDOWS</SYSTEMROOT>
+        </WINDOWS>
+        <FLAGS>ProfessionalWorkstation</FLAGS>
+        <DISPLAYNAME>Windows 11 专业工作站版</DISPLAYNAME>
+        <DISPLAYDESCRIPTION>Windows 11 专业工作站版</DISPLAYDESCRIPTION>
+        <NAME>Windows 11 Pro for Workstations</NAME>
+        <DESCRIPTION>Windows 11 Pro for Workstations</DESCRIPTION>
+    </IMAGE>
+</WIM>
