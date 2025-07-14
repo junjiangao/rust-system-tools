@@ -131,6 +131,17 @@ impl WimParser {
         })
     }
 
+    /// 创建用于测试的 WIM 解析器（不需要实际文件）
+    #[doc(hidden)]
+    #[allow(dead_code)]
+    pub fn new_for_test(file: File) -> Self {
+        Self {
+            file,
+            header: None,
+            images: Vec::new(),
+        }
+    }
+
     /// 读取并解析 WIM 文件头
     pub fn read_header(&mut self) -> Result<&WimHeader> {
         if self.header.is_some() {
