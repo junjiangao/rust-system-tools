@@ -7,9 +7,8 @@ use zbus::Connection;
 
 mod config;
 mod udisks2;
-mod wim;
 use udisks2::IsoMounter;
-use wim::WimParser;
+use wim_parser::WimParser;
 
 mod gui;
 use gui::run_gui;
