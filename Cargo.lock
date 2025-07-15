@@ -1045,6 +1045,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "encoding_rs"
+version = "0.8.35"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "75030f3c4f45dafd7586dd6780965a8c7e8e285a5ecb86713e63a79c5b2766f3"
+dependencies = [
+ "cfg-if",
+]
+
+[[package]]
 name = "endi"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3607,11 +3616,12 @@ dependencies = [
 
 [[package]]
 name = "wim-parser"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d0bb6c35ab19e829b1f6ea3d5967150acfd9da259abe5c7c6591eadfdddfd56"
+checksum = "84d04543054eed42851191597455ad8179472cc10058097e9d2d807098aa7c55"
 dependencies = [
  "anyhow",
+ "encoding_rs",
  "quick-xml 0.38.0",
  "tracing",
 ]
